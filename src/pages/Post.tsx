@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -7,6 +6,7 @@ import ChatInput from '@/components/ChatInput';
 import ChatMessage from '@/components/ChatMessage';
 import { Button } from '@/components/ui/button';
 import { Share, MessageCircle } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 
 interface Question {
   id: string;
