@@ -5,10 +5,15 @@ import { cn } from '@/lib/utils';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
+  placeholder?: string;
   className?: string;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, className }) => {
+const ChatInput: React.FC<ChatInputProps> = ({ 
+  onSendMessage, 
+  placeholder = "Ask a question anonymously...", 
+  className 
+}) => {
   const [message, setMessage] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -31,7 +36,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, className }) => {
         type="text"
         value={message}
         onChange={(e) => setMessage(e.target.value)}
-        placeholder="Ask a question anonymously..."
+        placeholder={placeholder}
         className="flex-1 px-4 py-3 rounded-full glass-dark focus:outline-none focus:ring-1 focus:ring-black text-sm"
       />
       <button

@@ -5,6 +5,8 @@ import Header from '@/components/Header';
 import ChatMessage, { ChatMessageProps } from '@/components/ChatMessage';
 import QuestionCard from '@/components/QuestionCard';
 import ChatInput from '@/components/ChatInput';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 // For demo, we'll use some sample data
 const sampleQuestions = [
@@ -113,6 +115,10 @@ const Index = () => {
     <div className="min-h-screen flex flex-col bg-[#fafafa]">
       <Header />
       
+      <div className="w-full py-4 px-6 bg-black text-white text-center">
+        <p>This is a demo page. <Link to="/" className="underline">Go to the actual app</Link></p>
+      </div>
+      
       <main className="flex flex-col md:flex-row flex-1 p-4 gap-4">
         {/* Chat Section */}
         <div className="flex-1 flex flex-col h-[calc(100vh-8rem)] glass rounded-xl overflow-hidden">
@@ -148,6 +154,16 @@ const Index = () => {
                 />
               ))}
             </div>
+          </div>
+          
+          <div className="glass rounded-xl p-4">
+            <h2 className="font-medium mb-3">New Features</h2>
+            <p className="text-sm mb-3">Create your own Anonymous Q&A post and share it!</p>
+            <Link to="/">
+              <Button className="w-full" variant="outline">
+                Try New Features
+              </Button>
+            </Link>
           </div>
         </div>
       </main>

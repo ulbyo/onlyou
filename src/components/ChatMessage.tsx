@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { cn } from '@/lib/utils';
 import AnonymousAvatar from './AnonymousAvatar';
@@ -41,7 +40,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
             : "glass border border-black/10 rounded-tr-none"
         )}
       >
-        <p className="text-sm">{content}</p>
+        <p className="text-sm whitespace-pre-wrap">{content}</p>
         <div className={cn(
           "text-xs mt-1", 
           isQuestion ? "text-gray-300" : "text-gray-500"
