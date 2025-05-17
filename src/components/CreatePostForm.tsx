@@ -5,7 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
-const CreatePostForm: React.FC = () => {
+interface CreatePostFormProps {
+  onSuccess?: () => void;
+}
+
+const CreatePostForm: React.FC<CreatePostFormProps> = ({ onSuccess }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,6 +40,10 @@ const CreatePostForm: React.FC = () => {
       description: "Your Anonymous Q&A post has been created. Share it with others!",
     });
     
+    if (onSuccess) {
+      onSuccess();
+    }
+    
     // Redirect to the post page
     window.location.href = `/post/${postId}`;
     
@@ -43,7 +51,7 @@ const CreatePostForm: React.FC = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4">
+    <form onSubmit={handleSubmit} className="w-full space-y-4">
       <div>
         <label htmlFor="title" className="block text-sm font-medium mb-1">
           Post Title
