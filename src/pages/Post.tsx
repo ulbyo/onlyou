@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -24,10 +23,12 @@ const Post = () => {
   const { data: post, isLoading: isPostLoading } = useQuery({
     queryKey: ['post', id],
     queryFn: () => getPostById(id!),
-    onError: () => {
-      navigate('/not-found');
-    },
-    enabled: !!id
+    enabled: !!id,
+    meta: {
+      onError: () => {
+        navigate('/not-found');
+      }
+    }
   });
 
   const { data: questions, isLoading: areQuestionsLoading } = useQuery({
