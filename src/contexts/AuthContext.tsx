@@ -20,16 +20,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log("Setting up auth state listener");
+    
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log("Auth state change:", event);
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // If event is SIGNED_IN, defer data fetching to prevent deadlocks
+        if (event === 'SIGNED_IN' && session?.user) {
+          setTimeout(() => {
+            console.log("User signed in:", session.user);
+          }, 0);
+        }
       }
     );
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("Initial session check:", session ? "Found session" : "No session");
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -39,18 +50,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signIn = async (email: string, password: string) => {
+    console.log("Signing in with email:", email);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
+    if (error) {
+      console.error("Sign in error:", error);
+      throw error;
+    }
+    
+    // Let the auth state listener handle the state update
   };
 
   const signUp = async (email: string, password: string) => {
+    console.log("Signing up with email:", email);
     const { error } = await supabase.auth.signUp({ email, password });
-    if (error) throw error;
+    if (error) {
+      console.error("Sign up error:", error);
+      throw error;
+    }
+    
+    // Let the auth state listener handle the state update
   };
 
   const signOut = async () => {
+    console.log("Signing out");
     const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    if (error) {
+      console.error("Sign out error:", error);
+      throw error;
+    }
+    
+    // Force reload to clear any state
+    window.location.href = '/login';
   };
 
   const value = {

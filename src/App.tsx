@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
+import AuthCleanup from "./components/AuthCleanup";
 
 const App = () => {
   // Create a new QueryClient instance inside the component
@@ -24,6 +25,7 @@ const App = () => {
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <AuthCleanup />
           <BrowserRouter>
             <Routes>
               <Route path="/demo" element={<Index />} />

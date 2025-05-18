@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -7,15 +7,24 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import Header from '@/components/Header';
+import { supabase } from '@/lib/supabase-client';
+import { cleanupAuthState } from '@/components/AuthCleanup';
 
 const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { signUp } = useAuth();
+  const { signUp, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,12 +41,26 @@ const Register = () => {
     setIsLoading(true);
 
     try {
+      // Clean up existing auth state first
+      cleanupAuthState();
+      
+      // Try global sign out first to clear any existing session
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // Continue even if this fails
+        console.log("Global sign out failed but continuing:", err);
+      }
+      
       await signUp(email, password);
+      
       toast({
         title: 'Registration successful',
         description: 'Please check your email to confirm your account.',
       });
-      navigate('/login');
+      
+      // Force page reload for clean state
+      window.location.href = '/login';
     } catch (error: any) {
       toast({
         title: 'Registration failed',

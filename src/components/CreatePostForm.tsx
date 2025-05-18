@@ -33,9 +33,14 @@ const CreatePostForm: React.FC<CreatePostFormProps> = ({ onSuccess }) => {
       return;
     }
     
+    console.log("Creating post with user:", user);
     setIsSubmitting(true);
     
     try {
+      if (!user.id) {
+        throw new Error("User ID is missing");
+      }
+      
       const post = await createPost(title, description, user.id);
       
       toast({
@@ -50,6 +55,7 @@ const CreatePostForm: React.FC<CreatePostFormProps> = ({ onSuccess }) => {
       // Redirect to the post page
       navigate(`/post/${post.id}`);
     } catch (error: any) {
+      console.error("Post creation error:", error);
       toast({
         title: "Failed to create post",
         description: error.message || "Something went wrong. Please try again.",

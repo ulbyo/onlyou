@@ -50,13 +50,23 @@ export async function getQuestionsForPost(postId: string) {
 }
 
 export async function createPost(title: string, description: string, userId: string) {
+  console.log("Creating post with userId:", userId);
+  
+  if (!userId) {
+    throw new Error("User ID is required to create a post");
+  }
+  
   const { data, error } = await supabase
     .from('posts')
     .insert([{ title, description, owner_id: userId }])
     .select()
     .single();
   
-  if (error) throw error;
+  if (error) {
+    console.error("Error creating post:", error);
+    throw error;
+  }
+  
   return data;
 }
 
