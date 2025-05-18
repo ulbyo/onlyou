@@ -1,95 +1,74 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getPostById, getQuestionsForPost, createQuestion, createAnswer } from '@/lib/supabase-client';
 import Header from '@/components/Header';
 import ChatInput from '@/components/ChatInput';
 import PostHeader from '@/components/PostHeader';
 import QuestionList from '@/components/QuestionList';
 import AnswerForm from '@/components/AnswerForm';
-import { Post as PostType, Question } from '@/types/post';
+import { Loader2 } from 'lucide-react';
+import { Question } from '@/types/post';
 
 const Post = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [post, setPost] = useState<PostType | null>(null);
-  const [isOwner, setIsOwner] = useState<boolean>(false);
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
 
-  useEffect(() => {
-    // In a real app, fetch from a database
-    const storedPosts = JSON.parse(localStorage.getItem('anonymous-posts') || '[]');
-    const foundPost = storedPosts.find((p: PostType) => p.id === id);
-    
-    if (foundPost) {
-      setPost(foundPost);
-      
-      // For demo, let's consider the creator is the current user
-      // In a real app, you'd check auth status
-      setIsOwner(true);
-    } else {
+  const { data: post, isLoading: isPostLoading } = useQuery({
+    queryKey: ['post', id],
+    queryFn: () => getPostById(id!),
+    onError: () => {
       navigate('/not-found');
+    },
+    enabled: !!id
+  });
+
+  const { data: questions, isLoading: areQuestionsLoading } = useQuery({
+    queryKey: ['questions', id],
+    queryFn: () => getQuestionsForPost(id!),
+    enabled: !!id
+  });
+
+  // Determine if current user is the post owner
+  const isOwner = user && post ? user.id === post.owner_id : false;
+
+  const askQuestionMutation = useMutation({
+    mutationFn: (content: string) => createQuestion(id!, content),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['questions', id] });
+      toast({
+        title: "Question submitted",
+        description: "Your anonymous question has been sent to the post creator.",
+      });
     }
-  }, [id, navigate]);
+  });
+
+  const answerQuestionMutation = useMutation({
+    mutationFn: ({ questionId, answerContent }: { questionId: string, answerContent: string }) => 
+      createAnswer(questionId, answerContent),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['questions', id] });
+      setSelectedQuestion(null);
+      toast({
+        title: "Answer published",
+        description: "Your answer has been published while keeping the asker anonymous.",
+      });
+    }
+  });
 
   const handleAskQuestion = (content: string) => {
-    if (!post) return;
-    
-    const newQuestion: Question = {
-      id: `q-${Math.random().toString(36).substring(2, 10)}`,
-      content,
-      timestamp: new Date().toISOString(),
-      answered: false
-    };
-    
-    updatePost({
-      ...post,
-      questions: [...post.questions, newQuestion]
-    });
-    
-    toast({
-      title: "Question submitted",
-      description: "Your anonymous question has been sent to the post creator.",
-    });
+    askQuestionMutation.mutate(content);
   };
 
   const handleAnswerQuestion = (questionId: string, answerContent: string) => {
-    if (!post || !answerContent) return;
-    
-    const updatedQuestions = post.questions.map(question => 
-      question.id === questionId ? {
-        ...question,
-        answered: true,
-        answer: {
-          content: answerContent,
-          timestamp: new Date().toISOString()
-        }
-      } : question
-    );
-    
-    updatePost({
-      ...post,
-      questions: updatedQuestions
-    });
-
-    setSelectedQuestion(null);
-    
-    toast({
-      title: "Answer published",
-      description: "Your answer has been published while keeping the asker anonymous.",
-    });
-  };
-
-  const updatePost = (updatedPost: PostType) => {
-    // Update in localStorage
-    const storedPosts = JSON.parse(localStorage.getItem('anonymous-posts') || '[]');
-    const updatedPosts = storedPosts.map((p: PostType) => 
-      p.id === updatedPost.id ? updatedPost : p
-    );
-    
-    localStorage.setItem('anonymous-posts', JSON.stringify(updatedPosts));
-    setPost(updatedPost);
+    answerQuestionMutation.mutate({ questionId, answerContent });
   };
 
   const handleSharePost = () => {
@@ -112,7 +91,16 @@ const Post = () => {
     });
   };
 
-  if (!post) return <div>Loading...</div>;
+  if (isPostLoading || !post) {
+    return (
+      <div className="min-h-screen flex flex-col bg-[#fafafa]">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#fafafa]">
@@ -128,12 +116,27 @@ const Post = () => {
           />
           
           <div className="flex-1 overflow-y-auto p-4">
-            <QuestionList 
-              questions={post.questions} 
-              isOwner={isOwner} 
-              onSelectQuestion={setSelectedQuestion}
-              onShareAnswer={handleShareAnswer}
-            />
+            {areQuestionsLoading ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            ) : (
+              <QuestionList 
+                questions={questions?.map(q => ({
+                  id: q.id,
+                  content: q.content,
+                  timestamp: q.created_at,
+                  answered: q.answered,
+                  answer: q.answers && q.answers[0] ? {
+                    content: q.answers[0].content,
+                    timestamp: q.answers[0].created_at
+                  } : undefined
+                }))} 
+                isOwner={isOwner} 
+                onSelectQuestion={setSelectedQuestion}
+                onShareAnswer={handleShareAnswer}
+              />
+            )}
           </div>
           
           {!isOwner && (

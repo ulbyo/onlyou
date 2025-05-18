@@ -1,29 +1,39 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { getPosts } from '@/lib/supabase-client';
+import { Loader2 } from 'lucide-react';
+import { DbPost } from '@/types/supabase';
 
-interface Post {
-  id: string;
-  title: string;
-  description: string;
-  createdAt: string;
-  questions: any[];
+interface PostListProps {
+  posts?: DbPost[];
+  loading?: boolean;
 }
 
-const PostList: React.FC = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
+const PostList: React.FC<PostListProps> = ({ posts: propPosts, loading: propLoading }) => {
+  const { data: fetchedPosts, isLoading } = useQuery({
+    queryKey: ['posts'],
+    queryFn: () => getPosts(),
+    enabled: !propPosts,
+  });
 
-  useEffect(() => {
-    // In a real app, fetch from a database
-    const storedPosts = JSON.parse(localStorage.getItem('anonymous-posts') || '[]');
-    setPosts(storedPosts);
-  }, []);
+  const posts = propPosts || fetchedPosts;
+  const loading = propLoading || isLoading;
 
-  if (posts.length === 0) {
+  if (loading) {
+    return (
+      <div className="flex justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!posts || posts.length === 0) {
     return (
       <div className="text-center p-8">
-        <p className="text-muted-foreground">You haven't created any Q&A posts yet.</p>
+        <p className="text-muted-foreground">No Q&A posts found.</p>
       </div>
     );
   }
@@ -36,8 +46,7 @@ const PostList: React.FC = () => {
             <CardHeader>
               <CardTitle>{post.title}</CardTitle>
               <CardDescription>
-                {new Date(post.createdAt).toLocaleDateString()} • 
-                {post.questions.length} question{post.questions.length !== 1 ? 's' : ''}
+                {new Date(post.created_at).toLocaleDateString()}
               </CardDescription>
             </CardHeader>
             {post.description && (

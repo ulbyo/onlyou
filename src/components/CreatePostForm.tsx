@@ -1,9 +1,12 @@
 
 import React, { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { createPost } from '@/lib/supabase-client';
+import { useNavigate } from 'react-router-dom';
 
 interface CreatePostFormProps {
   onSuccess?: () => void;
@@ -14,40 +17,47 @@ const CreatePostForm: React.FC<CreatePostFormProps> = ({ onSuccess }) => {
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
     
-    // In a real app, this would save to a database
-    // For now we'll just generate a random ID and store in localStorage
-    const postId = `post-${Math.random().toString(36).substring(2, 10)}`;
-    
-    const newPost = {
-      id: postId,
-      title,
-      description,
-      createdAt: new Date().toISOString(),
-      questions: []
-    };
-    
-    // Store in localStorage for demo
-    const existingPosts = JSON.parse(localStorage.getItem('anonymous-posts') || '[]');
-    localStorage.setItem('anonymous-posts', JSON.stringify([...existingPosts, newPost]));
-    
-    toast({
-      title: "Post created!",
-      description: "Your Anonymous Q&A post has been created. Share it with others!",
-    });
-    
-    if (onSuccess) {
-      onSuccess();
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "You need to be logged in to create a post.",
+        variant: "destructive"
+      });
+      navigate('/login');
+      return;
     }
     
-    // Redirect to the post page
-    window.location.href = `/post/${postId}`;
+    setIsSubmitting(true);
     
-    setIsSubmitting(false);
+    try {
+      const post = await createPost(title, description, user.id);
+      
+      toast({
+        title: "Post created!",
+        description: "Your Anonymous Q&A post has been created. Share it with others!",
+      });
+      
+      if (onSuccess) {
+        onSuccess();
+      }
+      
+      // Redirect to the post page
+      navigate(`/post/${post.id}`);
+    } catch (error: any) {
+      toast({
+        title: "Failed to create post",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -85,7 +95,7 @@ const CreatePostForm: React.FC<CreatePostFormProps> = ({ onSuccess }) => {
         disabled={!title || isSubmitting}
         className="w-full"
       >
-        Create Anonymous Q&A Post
+        {isSubmitting ? 'Creating...' : 'Create Anonymous Q&A Post'}
       </Button>
     </form>
   );
