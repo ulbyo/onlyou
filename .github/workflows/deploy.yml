@@ -28,9 +28,13 @@ jobs:
       
     - name: Build
       run: npm run build
+      env:
+        VITE_SUPABASE_URL: 'https://ubbqfkuqomemfhktobjh.supabase.co'
+        VITE_SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InViYnFma3Vxb21lbWZoa3RvYmpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0NDkwNzEsImV4cCI6MjA2MzAyNTA3MX0.vdw_fHytoL3hvZhVxR6Li5o9_scJf5_5_HR9G4T8vfM'
       
     - name: Deploy to GitHub Pages
       uses: JamesIves/github-pages-deploy-action@v4
       with:
         folder: dist
         branch: gh-pages
+
