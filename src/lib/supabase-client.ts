@@ -2,11 +2,17 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '../types/database.types';
 
-// These will be replaced with environment variables when connected to Supabase
-const supabaseUrl = 'YOUR_SUPABASE_URL';
-const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
+// Using values from the Supabase integration
+const supabaseUrl = 'https://ubbqfkuqomemfhktobjh.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InViYnFma3Vxb21lbWZoa3RvYmpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0NDkwNzEsImV4cCI6MjA2MzAyNTA3MX0.vdw_fHytoL3hvZhVxR6Li5o9_scJf5_5_HR9G4T8vfM';
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseKey);
+export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
+  auth: {
+    storage: localStorage,
+    persistSession: true,
+    autoRefreshToken: true,
+  }
+});
 
 // Helper functions for database operations
 export async function getPosts(userId: string | null = null) {
