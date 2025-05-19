@@ -19,11 +19,17 @@ const App = () => {
   // Create a new QueryClient instance inside the component
   const [queryClient] = useState(() => new QueryClient());
   
-  // Debug info for GitHub Pages deployment
+  // Enhanced debug info for deployment
   useEffect(() => {
-    console.log("App initialized");
-    console.log("Base URL:", import.meta.env.BASE_URL);
+    console.log("App initialized at:", new Date().toISOString());
+    console.log("Base URL:", document.baseURI);
+    console.log("Current pathname:", window.location.pathname);
+    console.log("Current hash:", window.location.hash);
     console.log("Environment:", import.meta.env.MODE);
+    
+    // Log if we're running on GitHub Pages
+    const isGitHubPages = window.location.hostname.includes('github.io');
+    console.log("Running on GitHub Pages:", isGitHubPages);
   }, []);
 
   return (
