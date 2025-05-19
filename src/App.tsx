@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter, Routes, Route } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AuthProvider } from "./contexts/AuthContext";
 import Index from "./pages/Index";
 import Home from "./pages/Home";
@@ -18,6 +18,13 @@ import AuthCleanup from "./components/AuthCleanup";
 const App = () => {
   // Create a new QueryClient instance inside the component
   const [queryClient] = useState(() => new QueryClient());
+  
+  // Debug info for GitHub Pages deployment
+  useEffect(() => {
+    console.log("App initialized");
+    console.log("Base URL:", import.meta.env.BASE_URL);
+    console.log("Environment:", import.meta.env.MODE);
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
