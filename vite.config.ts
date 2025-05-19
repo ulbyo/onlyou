@@ -19,5 +19,5 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080
   },
-  base: './', // Set to relative path for better GitHub Pages compatibility
+  base: '/onlyou/', // Set specific repo name for GitHub Pages
 }))

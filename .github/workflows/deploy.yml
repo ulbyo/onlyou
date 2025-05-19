@@ -29,7 +29,10 @@ jobs:
     - name: Debug environment
       run: |
         echo "NODE_ENV: $NODE_ENV"
-        echo "Building with relative paths for GitHub Pages"
+        echo "Building with base path: /onlyou/"
+        echo "Current path: $(pwd)"
+        echo "Files in directory:"
+        ls -la
         
     - name: Build
       run: npm run build
@@ -37,14 +40,10 @@ jobs:
         VITE_SUPABASE_URL: 'https://ubbqfkuqomemfhktobjh.supabase.co'
         VITE_SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InViYnFma3Vxb21lbWZoa3RvYmpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0NDkwNzEsImV4cCI6MjA2MzAyNTA3MX0.vdw_fHytoL3hvZhVxR6Li5o9_scJf5_5_HR9G4T8vfM'
         
-    - name: Create 404.html
+    - name: Copy index.html to 404.html
       run: |
-        echo "Creating 404.html that redirects to index.html"
         cp dist/index.html dist/404.html
-        
-    - name: List build output
-      run: |
-        echo "Contents of dist directory:"
+        echo "Contents of dist directory after copy:"
         ls -la dist/
         
     - name: Deploy to GitHub Pages
